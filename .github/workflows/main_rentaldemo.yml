@@ -27,9 +27,7 @@ jobs:
 
       - name: Build the Next.js app
         run: yarn build
-
-      - name: Export Next.js app as static files (if using static export)
-        run: yarn export # Optional, if using next export for static sites
+        
 
       - name: Zip artifact for deployment
         run: zip -r release.zip .next package.json public node_modules .env.production
