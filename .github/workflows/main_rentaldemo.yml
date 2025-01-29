@@ -60,6 +60,9 @@ jobs:
       - name: Print working directory (debugging)
         run: pwd
 
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
       - name: FTPS deploy to Azure Web App
         run: |
           # Navigate to the repository root to ensure correct paths
