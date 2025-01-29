@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read # This is required for actions/checkout
+      contents: read  # This is required for actions/checkout
 
     steps:
       - uses: actions/checkout@v4
@@ -47,20 +47,11 @@ jobs:
         with:
           name: nextjs-app
 
-      - name: Unzip artifact for deployment
-        run: |
-          cd /home/site/wwwroot
-          unzip /path/to/release.zip
-
-      - name: Clean previous deployment (optional)
-        run: |
-          rm -rf /home/site/wwwroot/*
-
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'rentaldemo'
           slot-name: 'Production'
-          package: ./  # Ensure you're pointing to the correct directory
+          package: release.zip  # Directly use the zip file as package
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2152D81D54164F85AAF541B0F87EF657 }}
