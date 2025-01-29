@@ -47,11 +47,17 @@ jobs:
         with:
           name: nextjs-app
 
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'rentaldemo'
-          slot-name: 'Production'
-          package: release.zip  # Directly use the zip file as package
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2152D81D54164F85AAF541B0F87EF657 }}
+      - name: Install lftp (FTPS client)
+        run: sudo apt-get install -y lftp
+
+      - name: FTPS deploy to Azure Web App
+        run: |
+          # Extract FTP credentials from publish profile (replace with your method of retrieval)
+          FTP_SERVER='ftps://waws-prod-yt1-067.ftp.azurewebsites.windows.net/site/wwwroot'
+          FTP_USERNAME='rentaldemo\$rentaldemo'
+          FTP_PASSWORD='NSpoDGX0C2RPncLNglM1sqhgoyf5qkugAvi5fhevkxbpwoXFmefHvAa549j1'
+
+          # Upload the .next folder and other necessary files to /home/site/wwwroot
+          lftp -e "mirror -R .next /home/site/wwwroot/.next; mirror -R public /home/site/wwwroot/public; mirror -R package.json /home/site/wwwroot/package.json; mirror -R node_modules /home/site/wwwroot/node_modules; quit" -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER
+
+      
