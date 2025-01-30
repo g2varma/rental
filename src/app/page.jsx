@@ -8,7 +8,7 @@ import Hero from "@/components/home-v2/hero";
 import MobileMenu from "@/components/mobile-menu";
 
 export const metadata = {
-  title: "MiPPRental | Find your next rental",
+  title: "MiPPRental | G2Tech your next rental",
 };
 
 const logoUrl = "https://www.mipropertyportal.com/wp-content/uploads/2020/10/MiPP-logo-svg.svg";
