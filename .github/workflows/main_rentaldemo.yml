@@ -3,7 +3,7 @@ name: Deploy Next.js to Azure App Service
 on:
   push:
     branches:
-      - main  # Change this to match your branch names
+      - main  # Change this to match your branch name
 
 jobs:
   build:
@@ -37,9 +37,13 @@ jobs:
         with:
           name: build-zip
 
-      - name: Deploy to Azure Web App
-        uses: Azure/webapps-deploy@v2
-        with:
-          app-name: renatls  # Replace with your Azure app name
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}  # Your publish profile secret
-          package: build.zip
+      - name: Deploy Build ZIP via Kudu ZipDeploy
+        run: |
+          curl -X POST -u "$DEPLOYMENT_USERNAME:$DEPLOYMENT_PASSWORD" \
+          --data-binary @build.zip \
+          "https://$AZURE_APP_NAME.scm.azurewebsites.net/api/zipdeploy"
+        env:
+          AZURE_APP_NAME: "rentalsite-gxenhwfaaxgth5cw"  # Replace with your App Service name
+          DEPLOYMENT_USERNAME: ${{ secrets.AZURE_DEPLOYMENT_USERNAME }}
+          DEPLOYMENT_PASSWORD: ${{ secrets.AZURE_DEPLOYMENT_PASSWORD }}
+
