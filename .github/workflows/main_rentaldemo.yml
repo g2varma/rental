@@ -85,22 +85,21 @@ jobs:
           set ftp:ssl-protect-data true;
           set ftp:passive-mode true;
           cd site/wwwroot;
-          mv build.zip build-temp.zip;
+          unzip -o build.zip;  # Unzip and overwrite existing files
           bye"
         env:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
 
-      - name: Azure App Service & Extract ZIPs
+      - name: Clean Up - Remove ZIP after Extract
         run: |
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://waws-prod-yt1-067.ftp.azurewebsites.windows.net:990 -e "
           set ftp:ssl-force true;
           set ftp:ssl-protect-data true;
           set ftp:passive-mode true;
           cd site/wwwroot;
-          unzip build-temp.zip;
+          rm build.zip;  # Remove ZIP file after extraction
           bye"
         env:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-
