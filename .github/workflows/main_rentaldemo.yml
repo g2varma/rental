@@ -91,14 +91,16 @@ jobs:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
 
-      - name: SSH into Azure App Service & Extract ZIP
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.AZURE_APP_SERVICE_HOST }}
-          username: ${{ secrets.AZURE_SSH_USERNAME }}
-          password: ${{ secrets.AZURE_SSH_PASSWORD }}
-          script: |
-            cd /home/site/wwwroot
-            unzip -o build-temp.zip
-            rm build-temp.zip
+      - name: Azure App Service & Extract ZIP
+        run: |
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://waws-prod-yt1-067.ftp.azurewebsites.windows.net:990 -e "
+          set ftp:ssl-force true;
+          set ftp:ssl-protect-data true;
+          set ftp:passive-mode true;
+          cd site/wwwroot;
+          unzip build-temp.zip;
+          bye"
+        env:
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
 
