@@ -41,7 +41,7 @@ jobs:
         run: |
           curl -X POST -u "$DEPLOYMENT_USERNAME:$DEPLOYMENT_PASSWORD" \
           --data-binary @build.zip \
-          "https://$AZURE_APP_NAME.scm.azurewebsites.net/api/zipdeploy"
+          "https://$AZURE_APP_NAME.scm.canadacentral-01.azurewebsites.net/api/deployments"
         env:
           AZURE_APP_NAME: "rentalsite-gxenhwfaaxgth5cw"  # Replace with your App Service name
           DEPLOYMENT_USERNAME: ${{ secrets.AZURE_DEPLOYMENT_USERNAME }}
