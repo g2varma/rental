@@ -85,7 +85,7 @@ jobs:
           set ftp:ssl-protect-data true;
           set ftp:passive-mode true;
           cd site/wwwroot;
-          unzip build.zip;
+          /usr/bin/unzip build.zip;
           bye"
         env:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
