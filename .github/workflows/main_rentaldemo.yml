@@ -78,7 +78,7 @@ jobs:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
 
-      - name: Extract Build ZIP on Azure App Service
+      - name: Extract Build ZIP on Azure App Services
         run: |
           lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://waws-prod-yt1-067.ftp.azurewebsites.windows.net:990 -e "
           set ftp:ssl-force true;
