@@ -37,13 +37,40 @@ jobs:
         with:
           name: build-zip
 
-      - name: Deploy Build ZIP via Kudu ZipDeploy
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Verify FTP Connection
+        run: |
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://$AZURE_FTP_HOST -e "
+          set ftp:ssl-force true;
+          set ftp:ssl-protect-data true;
+          set ftp:passive-mode true;
+          ls;
+          bye"
+        env:
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          AZURE_FTP_HOST: ${{ secrets.AZURE_FTP_HOST }}
+
+      - name: Upload Build ZIP to Azure App Service
+        run: |
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://$AZURE_FTP_HOST -e "
+          set ftp:ssl-force true;
+          set ftp:ssl-protect-data true;
+          set ftp:passive-mode true;
+          cd site/wwwroot;
+          put build.zip;
+          bye"
+        env:
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          AZURE_FTP_HOST: ${{ secrets.AZURE_FTP_HOST }}
+
+      - name: Trigger Kudu API for ZipDeploy (Automatic Unzip)
         run: |
           curl -X POST -u "$DEPLOYMENT_USERNAME:$DEPLOYMENT_PASSWORD" \
-          --data-binary @build.zip \
-          "https://$AZURE_APP_NAME.scm.canadacentral-01.azurewebsites.net/api/deployments"
+          "https://rentalsite-gxenhwfaaxgth5cw.scm.canadacentral-01.azurewebsites.net/api/zipdeploy"
         env:
-          AZURE_APP_NAME: "rentalsite-gxenhwfaaxgth5cw"  # Replace with your App Service name
-          DEPLOYMENT_USERNAME: ${{ secrets.AZURE_DEPLOYMENT_USERNAME }}
-          DEPLOYMENT_PASSWORD: ${{ secrets.AZURE_DEPLOYMENT_PASSWORD }}
-
+          DEPLOYMENT_USERNAME: ${{ secrets.FTP_USERNAME }}
+          DEPLOYMENT_PASSWORD: ${{ secrets.FTP_PASSWORD }}
