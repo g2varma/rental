@@ -22,7 +22,7 @@ jobs:
         run: zip -r build.zip .next public package.json yarn.lock
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v2  # Updated to v2
+        uses: actions/upload-artifact@v3
         with:
           name: build-zip
           path: build.zip
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download Build Artifact
-        uses: actions/download-artifact@v2  # Updated to v2
+        uses: actions/download-artifact@v3
         with:
           name: build-zip
 
@@ -42,7 +42,7 @@ jobs:
 
       - name: Verify FTP Connection
         run: |
-          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://$AZURE_FTP_HOST -e "
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://waws-prod-yt1-067.ftp.azurewebsites.windows.net:990 -e "
           set ftp:ssl-force true;
           set ftp:ssl-protect-data true;
           set ftp:passive-mode true;
@@ -51,11 +51,10 @@ jobs:
         env:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          AZURE_FTP_HOST: ${{ secrets.AZURE_FTP_HOST }}
 
       - name: Upload Build ZIP to Azure App Service
         run: |
-          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://$AZURE_FTP_HOST -e "
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://waws-prod-yt1-067.ftp.azurewebsites.windows.net:990 -e "
           set ftp:ssl-force true;
           set ftp:ssl-protect-data true;
           set ftp:passive-mode true;
@@ -65,12 +64,29 @@ jobs:
         env:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          AZURE_FTP_HOST: ${{ secrets.AZURE_FTP_HOST }}
 
-      - name: Trigger Kudu API for ZipDeploy (Automatic Unzip)
+      - name: Remove Existing .next Directory
         run: |
-          curl -X POST -u "$DEPLOYMENT_USERNAME:$DEPLOYMENT_PASSWORD" \
-          "https://rentalsite-gxenhwfaaxgth5cw.scm.canadacentral-01.azurewebsites.net/api/zipdeploy"
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://waws-prod-yt1-067.ftp.azurewebsites.windows.net:990 -e "
+          set ftp:ssl-force true;
+          set ftp:ssl-protect-data true;
+          set ftp:passive-mode true;
+          cd site/wwwroot;
+          mrm -r .next;
+          bye"
         env:
-          DEPLOYMENT_USERNAME: ${{ secrets.FTP_USERNAME }}
-          DEPLOYMENT_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+
+      - name: Extract Build ZIP on Azure App Services
+        run: |
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://waws-prod-yt1-067.ftp.azurewebsites.windows.net:990 -e "
+          set ftp:ssl-force true;
+          set ftp:ssl-protect-data true;
+          set ftp:passive-mode true;
+          cd site/wwwroot;
+          /usr/bin/unzip build.zip;
+          bye"
+        env:
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
