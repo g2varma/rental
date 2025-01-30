@@ -18,8 +18,8 @@ jobs:
       - name: Build Next.js Application
         run: yarn build
 
-      - name: Compress Build Directory with All Files
-        run: zip -r build.zip .next public package.json yarn.lock .env node_modules
+      - name: Compress Build Directory
+        run: zip -r build.zip .next public package.json yarn.lock
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
@@ -37,56 +37,9 @@ jobs:
         with:
           name: build-zip
 
-      - name: Install lftp
-        run: sudo apt-get update && sudo apt-get install -y lftp
-
-      - name: Verify FTP Connection
-        run: |
-          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://waws-prod-yt1-067.ftp.azurewebsites.windows.net:990 -e "
-          set ftp:ssl-force true;
-          set ftp:ssl-protect-data true;
-          set ftp:passive-mode true;
-          ls;
-          bye"
-        env:
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-
-      - name: Upload Build ZIP to Azure App Service
-        run: |
-          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://waws-prod-yt1-067.ftp.azurewebsites.windows.net:990 -e "
-          set ftp:ssl-force true;
-          set ftp:ssl-protect-data true;
-          set ftp:passive-mode true;
-          cd site/wwwroot;
-          put build.zip;
-          bye"
-        env:
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-
-      - name: Remove Existing .next Directory
-        run: |
-          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://waws-prod-yt1-067.ftp.azurewebsites.windows.net:990 -e "
-          set ftp:ssl-force true;
-          set ftp:ssl-protect-data true;
-          set ftp:passive-mode true;
-          cd site/wwwroot;
-          mrm -r .next;
-          bye"
-        env:
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-
-      - name: Extract Build ZIP on Azure App Services
-        run: |
-          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" ftps://waws-prod-yt1-067.ftp.azurewebsites.windows.net:990 -e "
-          set ftp:ssl-force true;
-          set ftp:ssl-protect-data true;
-          set ftp:passive-mode true;
-          cd site/wwwroot;
-          /usr/bin/unzip build.zip;
-          bye"
-        env:
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      - name: Deploy to Azure Web App
+        uses: Azure/webapps-deploy@v2
+        with:
+          app-name: rentaldemo  # Replace with your Azure app name
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}  # Your publish profile secret
+          package: build.zip
